@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en" x-data="{ dark: localStorage.getItem('theme')==='dark'||(!localStorage.getItem('theme')&&window.matchMedia('(prefers-color-scheme: dark)').matches), scrolled:false, mobileMenu:false, progress:0 }" :class="{'dark':dark}" x-init="$watch('dark',v=>localStorage.setItem('theme',v?'dark':'light'));window.addEventListener('scroll',()=>{scrolled=window.scrollY>20;progress=Math.min(100,Math.round((window.scrollY/(document.body.scrollHeight-window.innerHeight))*100));},{passive:true})" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Why I ditched heavy CSS frameworks for Tailwind — Philip</title>
+
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- ALPINE JS -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+        darkMode: 'class',
+        theme: {
+        extend: {
+        fontFamily: { display: ['PT Sans','sans-serif'], body: ['DM Sans','sans-serif'] },
+        colors: { accent: '#D4AF37', 'accent-light': '#C9A227' }
+    }
+  }
+}
+</script>
+
+<style>
+    /* 1. Base & Reset Rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'DM Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'PT Sans', sans-serif;
+}
+
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Subtle background grain/noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4AF37;
+  border-radius: 99px;
+}
+
+
+/*  Interactive UI Components & Animations*/
+
+/* Reading Progress Bar */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: #D4AF37;
+  z-index: 100;
+  transition: width 0.1s ease;
+}
+
+/* Navigation Links */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: currentColor;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Primary Button Shine Effect */
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 60%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.18);
+  transform: skewX(-20deg);
+  transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary:hover::after {
+  left: 160%;
+}
+
+/* Cards & Frames */
+.card {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+}
+
+.photo-frame {
+  position: relative;
+  overflow: hidden;
+  background: #e4e4e7;
+}
+
+.photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Scroll Animations */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
+/* Article Typography (.prose-article) */
+
+/* Headings */
+.prose-article h2 {
+  font-family: 'PT Sans', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: inherit;
+  margin: 2.5rem 0 1rem;
+  line-height: 1.25;
+}
+
+.prose-article h3 {
+  font-family: 'PT Sans', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 2rem 0 0.75rem;
+  line-height: 1.3;
+}
+
+/* Text & Lists */
+.prose-article p {
+  margin: 0 0 1.4rem;
+  line-height: 1.8;
+  color: #52525b;
+}
+
+.prose-article ul {
+  margin: 0 0 1.4rem 1.5rem;
+  list-style-type: disc;
+}
+
+.prose-article li {
+  margin-bottom: 0.4rem;
+  line-height: 1.7;
+  color: #52525b;
+}
+
+.prose-article a {
+  color: #FF6B2B;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose-article hr {
+  border: none;
+  border-top: 1px solid #e4e4e7;
+  margin: 2.5rem 0;
+}
+
+/* Quotes & Blockquotes */
+.prose-article blockquote {
+  border-left: 3px solid #FF6B2B;
+  padding: 0.75rem 1.25rem;
+  margin: 0 0 1.6rem;
+  background: #fff7f4;
+  border-radius: 0 8px 8px 0;
+}
+
+.prose-article blockquote p {
+  color: #52525b;
+  font-style: italic;
+  margin: 0;
+}
+
+/* Code Snippets */
+.prose-article pre {
+  background: #18181b;
+  color: #e4e4e7;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  margin: 0 0 1.6rem;
+}
+
+.prose-article code:not(pre code) {
+  background: #f4f4f5;
+  color: #FF6B2B;
+  padding: 0.15em 0.4em;
+  border-radius: 4px;
+  font-size: 0.875em;
+}
+
+/* Dark Mode Overrides */
+.dark .prose-article p,
+.dark .prose-article li,
+.dark .prose-article blockquote p {
+  color: #a1a1aa;
+}
+
+.dark .prose-article code:not(pre code),
+.dark .prose-article blockquote {
+  background: #27272a;
+}
+
+.dark .prose-article hr {
+  border-top-color: #27272a;
+}
+</style>
+
+</head>
+<body class="bg-white dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 font-body antialiased">
+
+    <!-- Reading progress bar -->
+  <div class="progress-bar" :style="`width:${progress}%`" role="progressbar" :aria-valuenow="progress" aria-valuemin="0" aria-valuemax="100" aria-label="Reading progress"></div>
+  
+  
+  <!-- NAV -->
+    <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
+            :class="scrolled?'bg-white/90 dark:bg-zinc-950/90 backdrop-blur-md shadow-sm shadow-black/5':'bg-transparent'">
+        <nav class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between" aria-label="Main navigation">
+            <a href="index.html" class="font-display font-bold text-xl tracking-tight z-10" aria-label="Back to home">
+                <span class="text-zinc-900 dark:text-white">Phi</span><span class="text-accent">lip</span>
+            </a>
+            <ul class="hidden md:flex items-center gap-8 text-sm font-medium" role="list">
+                <li><a href="index.html#services" class="nav-link text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Services</a></li>
+                <li><a href="index.html#about" class="nav-link text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">About</a></li>
+                <li><a href="blog.html" class="nav-link text-accent font-medium">Blog</a></li>
+                <li><a href="index.html#contact" class="nav-link text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">Contact</a></li>
+            </ul>
+            <button @click="dark=!dark" class="w-9 h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors" :aria-label="dark?'Light mode':'Dark mode'">
+              <svg x-show="!dark" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+              <svg x-show="dark" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/></svg>
+            </button>
+            <a href="index.html#contact" class="hidden md:inline-flex items-center gap-2 btn-primary bg-accent text-white text-sm font-medium px-5 py-2 rounded-full hover:bg-accent-light transition-colors">
+              Hire me <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+            </a>
+            <div class="flex items-center gap-3">
+              <button @click="mobileMenu=!mobileMenu" class="md:hidden w-9 h-9 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800" :aria-expanded="mobileMenu" aria-label="Toggle menu">
+                <svg x-show="!mobileMenu" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <svg x-show="mobileMenu" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+        </nav>
+  
+        <div x-show="mobileMenu" x-cloak x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 -translate-y-2" class="md:hidden bg-white dark:bg-zinc-950 border-t border-zinc-100 dark:border-zinc-900">
+          <ul class="flex flex-col px-6 py-4 gap-4 text-sm font-medium" role="list">
+            <li><a href="index.html#services" @click="mobileMenu=false" class="block text-zinc-700 dark:text-zinc-300">Services</a></li>
+            <li><a href="index.html#about" @click="mobileMenu=false" class="block text-zinc-700 dark:text-zinc-300">About</a></li>
+            <li><a href="blog.html" class="block text-accent font-medium">Blog</a></li>
+            <li><a href="index.html#contact" @click="mobileMenu=false" class="block text-zinc-700 dark:text-zinc-300">Contact</a></li>
+          </ul>
+        </div>
+    </header>
+
+
+    <!-- ARTICLE HEADER -->
+    <article>
+      <header class="pt-32 pb-12 max-w-3xl mx-auto px-6">
+        <a href="blog.html" class="inline-flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 hover:text-accent transition-colors mb-8">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"/></svg>
+          Back to blog
+        </a>
+        <div class="flex items-center gap-3 mb-5">
+          <span class="text-xs bg-orange-50 dark:bg-zinc-800 text-accent border border-orange-200 dark:border-zinc-700 px-2.5 py-1 rounded-full">Design</span>
+          <span class="text-xs text-zinc-400">3 Sep, 2026 · 7 min read</span>
+        </div>
+
+        <h1 class="font-display font-bold text-4xl md:text-5xl text-zinc-900 dark:text-white leading-tight mb-6">Why I ditched heavy CSS frameworks for Tailwind — and what changed</h1>
+
+        <p class="text-xl text-zinc-500 dark:text-zinc-400 leading-relaxed mb-8">After weeks of fighting specificity wars, writing 1,000-line styles.css files, and juggling class names, here's what finally convinced me to make the switch to Tailwind CSS last week.</p>
+
+        <!-- Author -->
+        <div class="flex items-center gap-4 py-6 border-t border-b border-zinc-100 dark:border-zinc-900">
+          <div class="photo-frame w-12 h-12 rounded-full shrink-0">
+            <img src="IMAGES/Philip.png" alt="Philip" loading="lazy"/>
+          </div>
+          <div>
+            <p class="font-medium text-zinc-900 dark:text-white text-sm">Philip</p>
+            <p class="text-xs text-zinc-500">Frontend Developer</p>
+          </div>
+          <div class="ml-auto flex gap-3">
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-accent hover:border-accent transition-colors" aria-label="Share on Twitter">
+              <svg  class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.259 5.632 5.905-5.632zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            </a>
+            <a href="#" class="w-8 h-8 flex items-center justify-center rounded-full border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:text-accent hover:border-accent transition-colors" aria-label="Share on LinkedIn">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Hero image -->
+      <div class="max-w-4xl mx-auto px-6 mb-12">
+        <div class="photo-frame w-full h-72 md:h-96 rounded-2xl">
+          <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&q=80" alt="Code editor with CSS" loading="lazy"/>
+        </div>
+      </div>
+
+      <!-- Article content -->
+      <div class="max-w-3xl mx-auto px-6 pb-16 prose-article">
+
+        <h2>The Problem with Traditional Custom CSS</h2>
+        <p>I only started learning CSS a few weeks ago. Like most beginners, I began with dedicated <code>styles.css</code> files, carefully writing semantic class names, and trying to keep things organized with clean section comments. I thought this was the "proper" way to build for the web. But even in my first few projects, I found myself fighting my own code rather than building features.</p>
+        <p>Every project started the same way: write HTML structure, switch to CSS, invent class names, write responsive media queries, then spend half my dev time debugging specificity issues and broken cascade rules across pages. My custom CSS files quickly grew into overwhelming monsters because I was afraid to delete old classes out of fear of breaking something elsewhere on the site.</p>
+
+        <blockquote class="article-quote">
+          <p>"The moment you start adding <code>!important</code> or chaining giant selectors just to override your own CSS rules, something has gone fundamentally wrong."</p>
+        </blockquote>
+
+        <h2>What Made Me Give Tailwind a Proper Shot</h2>
+        <p>I'd dismissed Tailwind for a long time. The utility-class approach looked messy in the HTML, and I was convinced it would make templates unreadable. But last week, I finally decided to test it out on a real project to see what the hype was about.</p>
+        <p>Within a few days, I was completely converted. Here is what changed my mind:</p>
+        <ul class="article-list">
+          <li><strong>No Context Switching.</strong> I stopped bouncing back and forth between HTML and CSS files. Layout, typography, and spacing are all right there in the markup.</li>
+          <li><strong>Zero Specificity Wars.</strong> Utility classes are all single-level selectors. You never fight the cascade or override previous rules.</li>
+          <li><strong>No Class Naming Fatigue.</strong> I stopped wasting mental energy trying to decide between <code>.hero-title-wrapper-inner</code> and <code>.hero-card-header</code>.</li>
+          <li><strong>Tiny Final Bundles.</strong> Dead-code elimination means production builds are typically 5–15kb. My average CSS bundle dropped from 110kb to 8kb.</li>
+          <li><strong>The Design System is Centralized.</strong> Spacing, colors, and typography are all unified in one configuration rather than scattered across raw hex codes and random px values.</li>
+        </ul>
+
+        <h2>The Real-World Performance Impact</h2>
+          <p>I rebuilt a marketing site using Tailwind CSS + Alpine.js, replacing a traditional custom-written CSS stylesheet stack. The results after one week were hard to argue with:</p>
+  
+          <ul class="article-list">
+            <li>Lighthouse Performance: <strong>47 / 100 → 96 / 100</strong></li>
+            <li>CSS Bundle Size: <strong>118 kb → 7 kb</strong></li>
+            <li>First Contentful Paint: <strong>3.8s → 0.9s</strong></li>
+            <li>Bounce Rate: <strong>-22% drop from baseline</strong></li>
+          </ul>
+
+          <h2>What I Still Miss from Traditional CSS</h2>
+          <p>It's not all perfect. A few things from raw CSS still require extra attention:</p>
+          <ul class="article-list">
+            <li><strong>Clean HTML Markup:</strong> Tailwind adds many utility classes directly to your tags, which can look verbose compared to a clean HTML file using single custom classes.</li>
+            <li><strong>Complex Keyframe Animations:</strong> While simple transitions are easy in Tailwind, complex multi-step <code>@keyframes</code> animations are still cleaner written in custom CSS files or inline style blocks.</li>
+            <li><strong>Pseudo-element Heavy Effects:</strong> Creating intricate CSS-only art or complex <code>::before</code> / <code>::after</code> overlays can feel cluttered using utility classes.</li>
+          </ul>
+          <p>Fortunately, Tailwind allows you to drop back into standard CSS or custom directives whenever you actually need it.</p>
+
+          <h2>My Recommendation</h2>
+          <p><strong>Choose Tailwind if:</strong> You are building custom SaaS applications, portfolios, or marketing pages where speed, long-term maintainability, and small bundle sizes matter. The initial learning curve is about a week. After that, you'll ship faster than you ever did before.</p>
+          <p><strong>Write Custom CSS if:</strong> You are building small static single-page sites, learning core CSS layout mechanics for the first time, or crafting specialized CSS-only micro-animations.</p>
+          <p>Use the right tool for the job.</p>
+
+          <hr class="article-divider" />
+          <p class="article-footer-note"><em>If this was helpful, share it with a frontend dev friend who's still struggling with giant custom stylesheets! 🧡</em></p>
+      </div>
+    </article>
+
+    <footer class="border-t border-zinc-100 dark:border-zinc-900">
+        <div class="max-w-6xl mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-zinc-400">© <span id="yr"></span> Philip. All rights reserved. <br> Distributed by <a href="https://themewagon.com/" target="_blank" class="font-bold">ThemeWagon</a></p>
+            <p class="text-xs text-zinc-500">Built with
+                <a href="https://tailwindcss.com" rel="noopener noreferrer" target="_blank" class="hover:text-accent transition-colors">Tailwind CSS</a>
+                &amp;
+                <a href="https://alpinejs.dev" rel="noopener noreferrer" target="_blank" class="hover:text-accent transition-colors">Alpine.js</a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+      //  Dynamic Copyright Year
+      // Finds the HTML element with id="year" and sets its text content to the current year (e.g., 2026).
+      const yearElement = document.getElementById('year');
+      if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+      }
+
+      //  Intersection Observer (Scroll Reveal Animation)
+      // Options for when the animation triggers:
+      // - threshold: 0.1 means trigger when 10% of the element is visible in the viewport.
+      // - rootMargin: offsets the trigger line 40px above the bottom of the viewport so elements reveal slightly before entering fully.
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -40px 0px'
+      };
+
+      // Create the observer instance
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          // Check if the target element has scrolled into view
+          if (entry.isIntersecting) {
+            // Add the 'visible' CSS class to trigger the fade/slide-in transition
+            entry.target.classList.add('visible');
+            
+            // Stop observing the element so the animation only plays once
+            observer.unobserve(entry.target);
+          }
+        });
+      }, observerOptions);
+
+      //  Attach Observer to Elements
+      // Select all elements with the class 'reveal' and start watching them for scroll interactions
+      const revealElements = document.querySelectorAll('.reveal');
+      revealElements.forEach(element => revealObserver.observe(element));
+    </script>
+    
+
+
+    
+
+</body>
+</html>
