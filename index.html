@@ -413,12 +413,12 @@
                                 <div class="grid sm:grid-cols-2 gap-4">
                                     <div>
                                         <label for="fname" class="block text-xs font-medium text-zinc-400 mb-1.5">Name <span aria-hidden="true">*</span></label>
-                                        <input type="text" id="fname" name="name" placeholder="Jane Smith" required autocomplete="name"
+                                        <input type="text" id="fname" name="name" placeholder="Ariyo Philip" required autocomplete="name"
                                         class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:border-accent transition-colors">
                                     </div>
                                     <div>
                                         <label for="femail" class="block text-xs font-medium text-zinc-400 mb-1.5">Email <span aria-hidden="true">*</span></label>
-                                        <input type="email" id="femail" name="email" placeholder="jane@company.com" required autocomplete="email"
+                                        <input type="email" id="femail" name="email" placeholder="Philipiyanu71@gmail.com" required autocomplete="email"
                                         class="w-full bg-zinc-800 border border-zinc-700 text-white text-sm rounded-xl px-4 py-3 placeholder-zinc-600 focus:outline-none focus:border-accent transition-colors">
                                     </div>
                                 </div>
@@ -470,7 +470,7 @@
 
         // Runs automatically when Alpine initializes the component
         init() {
-          // 1. Dark Mode Setup: Check saved user preference, fallback to system setting
+          // Dark Mode Setup: Check saved user preference, fallback to system setting
           this.dark = localStorage.getItem('theme') === 'dark' ||
             (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
@@ -483,12 +483,12 @@
           // Set initial dark class on <html> on page load
           document.documentElement.classList.toggle('dark', this.dark);
 
-          // 2. Scroll Listener: Toggle 'sc' state to add styling (like shadow) to fixed header
+          //  Scroll Listener: Toggle 'sc' state to add styling (like shadow) to fixed header
           window.addEventListener('scroll', () => {
             this.sc = window.scrollY > 20;
           }, { passive: true });
 
-          // 3. IntersectionObserver: Triggers entrance animations when elements scroll into view
+          // IntersectionObserver: Triggers entrance animations when elements scroll into view
           const io = new IntersectionObserver((entries) => {
             entries.forEach(e => {
                 if (e.isIntersecting) { 
